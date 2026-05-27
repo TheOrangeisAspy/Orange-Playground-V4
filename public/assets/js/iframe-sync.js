@@ -50,21 +50,31 @@
       encodedPath = src;
     }
 
+    // Try Ultraviolet decoding
     if (typeof __uv$config !== 'undefined' && __uv$config?.prefix && typeof __uv$config.decodeUrl === 'function') {
       const prefix = __uv$config.prefix;
       const pos = normalized.indexOf(prefix);
       if (pos !== -1) {
         const enc = encodedPath.slice(pos + prefix.length);
-        try { return __uv$config.decodeUrl(enc); } catch (e) { return src; }
+        try { 
+          const decoded = __uv$config.decodeUrl(enc);
+          if (decoded && decoded !== src && decoded !== normalized) {
+            return decoded;
+          }
+        } catch (e) { }
       }
     }
 
+    // Try Scramjet decoding
     const scramPrefix = '/scramjet/';
     const scramPos = normalized.indexOf(scramPrefix);
     if (scramPos !== -1) {
       const enc = normalized.slice(scramPos + scramPrefix.length);
       try {
-        return decodeURIComponent(enc);
+        const decoded = decodeURIComponent(enc);
+        if (decoded && decoded !== src && decoded !== normalized) {
+          return decoded;
+        }
       } catch (e) {
         return src;
       }
@@ -75,10 +85,15 @@
     }
 
     try {
-      return iframe.contentWindow.location.href || src;
+      const iframeHref = iframe.contentWindow.location.href;
+      if (iframeHref && iframeHref !== 'about:blank' && iframeHref !== src && /^https?:\/\//.test(iframeHref)) {
+        return iframeHref;
+      }
     } catch (e) {
-      return src;
+      // CORS or other errors
     }
+
+    return src;
   }
 
   function isIframeVisible(iframe) {
@@ -116,6 +131,34 @@
     }
   }
 
+  function patchUltravioletNavigation() {
+    try {
+      if (typeof window.Ultraviolet === 'undefined' || window.Ultraviolet.__iframeSyncPatched) {
+        return false;
+      }
+      
+      // Hook into Ultraviolet's frame element to monitor src changes
+      // Also try to detect navigation through the Ultraviolet API
+      const uv = window.Ultraviolet;
+      
+      // Try to patch Ultraviolet's rewrite/proxy methods if available
+      if (uv.rewrite && typeof uv.rewrite === 'function') {
+        const originalRewrite = uv.rewrite.bind(uv);
+        uv.rewrite = function(url, ...args) {
+          if (typeof url === 'string' && url && !/^about:|blob:|data:|javascript:/.test(url)) {
+            try { window.setCurrentSearchUrl?.(url); } catch (e) {}
+          }
+          return originalRewrite(url, ...args);
+        };
+      }
+      
+      window.Ultraviolet.__iframeSyncPatched = true;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   let lastTargetUrl = '';
 
   function getIframeUrl(iframe) {
@@ -131,7 +174,17 @@
       const decoded = decodeProxyUrl(href, iframe);
       return decoded || href;
     }
-    return decodeProxyUrl(src, iframe);
+    const decoded = decodeProxyUrl(src, iframe);
+    // For Ultraviolet, if the decoded URL matches the src, try to extract from contentWindow location
+    if (!decoded || decoded === src) {
+      try {
+        const uvHref = iframe.contentWindow?.location?.href;
+        if (uvHref && uvHref !== 'about:blank' && uvHref !== src) {
+          return uvHref;
+        }
+      } catch (e) {}
+    }
+    return decoded;
   }
 
   function syncIframe() {
@@ -147,12 +200,27 @@
     if (!iframe || iframe.__iframeSyncObserved) return;
     iframe.__iframeSyncObserved = true;
 
-    iframe.addEventListener('load', syncIframe);
+    iframe.addEventListener('load', () => {
+      syncIframe();
+      // For Ultraviolet, try syncing again after a brief delay to catch decoded URLs
+      setTimeout(syncIframe, 100);
+    });
 
+    // Track src attribute specifically for Ultraviolet URL changes
+    let lastSrc = iframe.src || iframe.getAttribute('src');
     const observer = new MutationObserver((records) => {
       for (const record of records) {
         if (record.type === 'attributes' && ['src', 'class', 'style'].includes(record.attributeName)) {
-          syncIframe();
+          const currentSrc = iframe.src || iframe.getAttribute('src');
+          if (currentSrc !== lastSrc) {
+            lastSrc = currentSrc;
+            // Immediate sync for src changes
+            syncIframe();
+            // Additional sync for Ultraviolet delayed decoding
+            setTimeout(syncIframe, 50);
+          } else {
+            syncIframe();
+          }
         }
       }
     });
@@ -176,6 +244,23 @@
       syncIframe();
     }
 
+    // Direct listener for iframe src changes (especially for Ultraviolet)
+    const iframeAccessor = {
+      get src() {
+        const frame = getIframe();
+        return frame?.getAttribute('src') || '';
+      },
+      set src(value) {
+        const frame = getIframe();
+        if (frame) {
+          frame.setAttribute('src', value);
+          // Immediate sync for Ultraviolet src changes
+          syncIframe();
+          setTimeout(syncIframe, 100);
+        }
+      }
+    };
+
     const documentObserver = new MutationObserver((records) => {
       for (const record of records) {
         for (const node of [...record.addedNodes, ...record.removedNodes]) {
@@ -191,25 +276,30 @@
 
     documentObserver.observe(document.body || document.documentElement, { childList: true, subtree: true });
 
+    // More frequent syncing for Ultraviolet URL changes
     setInterval(() => {
       const iframe = getIframe();
       if (iframe && isIframeVisible(iframe)) {
         syncIframe();
       }
-    }, 1000);
+    }, 500);  // Changed from 1000ms to 500ms for better responsiveness
   }
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       watchIframeChanges();
       const patchInterval = setInterval(() => {
-        if (patchScramjetNavigation()) clearInterval(patchInterval);
+        let patched = patchScramjetNavigation();
+        patched = patchUltravioletNavigation() || patched;
+        if (patched) clearInterval(patchInterval);
       }, 500);
     });
   } else {
     watchIframeChanges();
     const patchInterval = setInterval(() => {
-      if (patchScramjetNavigation()) clearInterval(patchInterval);
+      let patched = patchScramjetNavigation();
+      patched = patchUltravioletNavigation() || patched;
+      if (patched) clearInterval(patchInterval);
     }, 500);
   }
 })();
