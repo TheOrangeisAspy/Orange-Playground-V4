@@ -11,7 +11,6 @@ async function loadCards() {
       const cardDiv = document.createElement("div");
       cardDiv.className = "square-card";
 
-      // Create image element
       const img = document.createElement("img");
       img.src = card.image;
       img.alt = card.title;
@@ -20,9 +19,17 @@ async function loadCards() {
       const title = document.createElement("h3");
       title.textContent = card.title;
 
-      if (card.link) {
+      const embedUrl = card.url || card.embedUrl;
+      let href = card.link;
+
+      if (card.hasOwnProperty("proxy") && embedUrl) {
+        const page = card.proxy ? "/assessments/blooket-sg.html" : "/worksheets/quizlet-hw.html";
+        href = `${page}?title=${encodeURIComponent(card.title)}&url=${encodeURIComponent(embedUrl)}`;
+      }
+
+      if (href) {
         cardDiv.addEventListener("click", () => {
-          window.location.href = card.link;
+          window.location.href = href;
         });
         cardDiv.style.cursor = "pointer";
       }

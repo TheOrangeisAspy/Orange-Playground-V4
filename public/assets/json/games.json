@@ -8,67 +8,80 @@
     {
       "title": "1v1.LOL",
       "image": "./assets/imgs/icons/1v1lol.jpg",
-      "link": "/worksheets/1v1lol.html"
+      "proxy": false,
+      "url": "https://orangeify.github.io/blooket-games/1v1-lol/index.html"
     },
     {
       "title": "8-Ball Pool",
       "image": "./assets/imgs/icons/8-ball-pool.webp",
-      "link": "/worksheets/8-ball-pool.html"
+      "proxy": false,
+      "url": "https://orangeify.github.io/blooket-games/8-ball-pool/index.html"
     },
     {
       "title": "2048",
       "image": "./assets/imgs/icons/2048.png",
-      "link": "/worksheets/2048.html"
+      "proxy": false,
+      "url": "https://orangeify.github.io/blooket-games/2048/index.html"
     },
     {
       "title": "AaronOS",
       "image": "./assets/imgs/icons/aaronos.png",
-      "link": "/worksheets/aaronos.html"
+      "proxy": false,
+      "url": "https://orangeify.github.io/blooket-games/aaron-os/index.html"
     },
     {
       "title": "Absurd Trolley Problems",
       "image": "./assets/imgs/icons/absurd-trolley-problems.jpg",
-      "link": "/worksheets/absurd-trolley-problems.html"
+      "proxy": true,
+      "url": "https://neal.fun/absurd-trolley-problems/"
     },
     {
       "title": "Achievement Unlocked",
       "image": "./assets/imgs/icons/achievement-unlocked.jpg",
-      "link": "/worksheets/achievement-unlocked.html"
+      "proxy": false,
+      "url": "https://orangeify.github.io/blooket-games/achievement-unlocked/index.html"
     },
     {
       "title": "A Dance of Fire and Ice",
       "image": "./assets/imgs/icons/adofai.png",
-      "link": "/worksheets/a-dance-of-fire-and-ice.html"
+      "proxy": false,
+      "url": "https://orangeify.github.io/blooket-games/a-dance-of-fire-and-ice/index.html"
     },
     {
       "title": "Agar.io",
       "image": "./assets/imgs/icons/agar-io.jpg",
-      "link": "/worksheets/agario.html"
+      "proxy": false,
+      "url": "https://agar.cc"
     },
     {
       "title": "Alien Hominid",
       "image": "./assets/imgs/icons/alien-hominid.jpg",
-      "link": "/worksheets/alien-hominid.html"
+      "proxy": false,
+      "url": "https://orangeify.github.io/blooket-games/alienhominid/index.html"
     },
     {
       "title": "Among Us",
       "image": "./assets/imgs/icons/amogus.jpg",
-      "link": "/worksheets/among-us.html"
+      "proxy": false,
+      "url": "https://www.easyfun.gg/embed/among-us.html"
     },
     {
       "title": "Angry Birds",
       "image": "./assets/imgs/icons/angry-birds.jpg",
-      "link": "/worksheets/angry-birds.html"
+      "proxy": false,
+      "url": "https://orangeify.github.io/blooket-games/angry-birds/index.html"
     },
     {
       "title": "Asteroid Launcher",
       "image": "./assets/imgs/icons/asteroid-launcher.png",
-      "link": "/worksheets/asteroid-launcher.html"
+      "proxy": false,
+      "url": "https://orangeify.github.io/blooket-games/asteroid-launcher/index.html"
     },
     {
       "title": "Baldi's Basics",
       "image": "./assets/imgs/icons/baldis-basics.png",
-      "link": "/worksheets/baldis-basics.html"
+      "proxy": false,
+      "url": "https://html5.gamemonetize.co/iiifrxhcnzl5laslqf3eaedtevjzb2bu/"
     }
   ]
 }

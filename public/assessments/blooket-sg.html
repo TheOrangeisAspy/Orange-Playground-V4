@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Orange Playground</title>
+        <link rel="stylesheet" id="themeStylesheetLink" href="assets/css/themes/original-orange.css">
+        <link rel="stylesheet" href="../assets/css/styles.css">
+        <script>
+          window.addEventListener('load', () => {
+              const loader = document.querySelector('.loader');
+              if (loader) loader.classList.add('loader--hidden');
+          });
+        </script>
+        <script>
+            const savedTheme = localStorage.getItem('theme') || 'original-orange';
+            document.write(`<link id="themeStylesheetLink" rel="stylesheet" href="/assets/css/themes/${savedTheme}.css">`);
+        </script>
+        <script src="../assets/js/loader-message.js" defer></script>
+    </head>
+    <body>
+        <div class="loader">
+            <div id="message" class="loader-message">Loading...</div>
+        </div>
+        <iframe id="sj-frame" class="dnone"></iframe>
+        <nav class="bottom-nav">
+            <div class="nav-container">
+                <a href="../index.html" class="nav-item nav-home active">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+            </a>
+            <span class="nav-label">Blooket SG</span>
+            
+            <div class="nav-right">
+                <a href="../worksheets.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gamepad2-icon lucide-gamepad-2"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg>
+                </a>
+                
+                <a href="../assessments.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-grid-icon lucide-layout-grid"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+                </a>
+                
+                <a href="../study-guides.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-icon lucide-settings"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>
+                </a>
+            </div>
+            </div>
+        </nav>
+
+        <!-- Scramjet bundles -->
+        <script src="../scram/scramjet.all.js"></script>
+        <script src="../scram/register-sw.js"></script>
+        <!-- BareMux -->
+        <script src="../baremux/index.js" defer></script>
+        <script src="../epoxy/index.js" defer></script>
+
+        <script>
+            const params = new URLSearchParams(window.location.search);
+            const gameTitle = params.get('title') || 'Blooket SG';
+            const embedUrl = params.get('url') || '';
+
+            document.title = `Orange Playground - ${gameTitle}`;
+
+            document.addEventListener('DOMContentLoaded', async () => {
+                const loader = document.querySelector('.loader');
+                const label = document.querySelector('.nav-label');
+                const message = document.getElementById('message');
+
+                if (label) label.textContent = gameTitle;
+                if (!embedUrl && message) message.textContent = 'No proxy game URL provided.';
+                if (loader) loader.classList.add('loader--hidden');
+
+                try {
+                    await registerSW();
+                } catch (err) {
+                    console.error('Failed to register service worker.', err);
+                }
+
+                if (embedUrl) {
+                    const { ScramjetController } = $scramjetLoadController();
+                    const scramjet = new ScramjetController({
+                        files: {
+                            wasm: "/scram/scramjet.wasm.wasm",
+                            all: "/scram/scramjet.all.js",
+                            sync: "/scram/scramjet.sync.js",
+                        },
+                    });
+                    scramjet.init();
+                    const connection = new BareMux.BareMuxConnection("/baremux/worker.js");
+                    let wispUrl = (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host + "/wisp/";
+                    if ((await connection.getTransport()) !== "/libcurl/index.mjs") {
+                        await connection.setTransport("/libcurl/index.mjs", [{ websocket: wispUrl }]);
+                    }
+                    const frame = scramjet.createFrame();
+                    frame.frame.id = "sj-frame";
+                    document.body.appendChild(frame.frame);
+                    frame.go(embedUrl);
+                }
+            });
+        </script>
+        <script src="../assets/js/cloaker.js"></script>
+        <script src="../assets/js/panic-key.js"></script>
+        <script src="../assets/js/theme-selector.js"></script>
+        <script src="navigation.js"></script>
+    </body>
+</html>
